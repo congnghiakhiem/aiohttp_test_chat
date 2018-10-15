@@ -8,7 +8,7 @@ class Message():
         self.collection = db[MESSAGE_COLLECTION]
 
     async def save(self, user, msg, **kw):
-        result = await self.collection.insert({'user': user, 'msg': msg, 'time': datetime.now()})
+        result = await self.collection.insert_one({'user': user, 'msg': msg, 'time': datetime.now()})
         return result
 
     async def get_messages(self):

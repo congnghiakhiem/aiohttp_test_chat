@@ -13,23 +13,12 @@ from motor import motor_asyncio as ma
 from settings import *
 
 
-async def on_shutdown(app):
+async def shutdown(app):
     for ws in app['websockets']:
-        await ws.close(code=1001, message='Server shutdown')
+        await ws.close()
+    app['websockets'].clear()
 
-
-async def shutdown(server, app, handler):
-
-    server.close()
-    await server.wait_closed()
-    app.client.close()  # database connection close
-    await app.shutdown()
-    await handler.finish_connections(10.0)
-    await app.cleanup()
-
-
-async def init(loop):
-
+async def init():
     app = web.Application(middlewares=[
         session_middleware(EncryptedCookieStorage(SECRET_KEY)),
         authorize,
@@ -37,9 +26,7 @@ async def init(loop):
 #         aiohttp_debugtoolbar.middleware,
     ])
     app['websockets'] = []
-    handler = app._make_handler()
-    if DEBUG:
-        aiohttp_debugtoolbar.setup(app)
+    app.on_shutdown.append(shutdown)
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 
     # route part
@@ -51,20 +38,12 @@ async def init(loop):
     app.client = ma.AsyncIOMotorClient(MONGO_HOST)
     app.db = app.client[MONGO_DB_NAME]
     # end db connect
-    app.on_shutdown.append(on_shutdown)
+    return app
 
-    serv_generator = loop.create_server(handler, SITE_HOST, SITE_PORT)
-    return serv_generator, handler, app
-
-loop = asyncio.get_event_loop()
-serv_generator, handler, app = loop.run_until_complete(init(loop))
-serv = loop.run_until_complete(serv_generator)
-log.debug('start server %s' % str(serv.sockets[0].getsockname()))
+log.debug('start server')
 try:
-    loop.run_forever()
+    app = init()
+    web.run_app(app)
 except KeyboardInterrupt:
     log.debug(' Stop server begin')
-finally:
-    loop.run_until_complete(shutdown(serv, app, handler))
-    loop.close()
 log.debug('Stop server end')

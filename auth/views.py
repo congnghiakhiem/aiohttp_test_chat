@@ -8,7 +8,7 @@ from auth.models import User
 
 
 def redirect(request, router_name):
-    url = request.app.router[router_name].url()
+    url = request.app.router[router_name].url_for()
     raise web.HTTPFound(url)
 
 
@@ -20,7 +20,7 @@ def set_session(session, user_id, request):
 
 
 def convert_json(message):
-    return json.dumps({'error': message})
+    return {'error': str(message)}
 
 
 class Login(web.View):
