@@ -24,7 +24,7 @@ class WebSocket(web.View):
         login = await user.get_login()
 
         for _ws in self.request.app['websockets']:
-            _ws.send_str('%s joined' % login)
+            await _ws.send_str('%s joined' % login)
         self.request.app['websockets'].append(ws)
 
         async for msg in ws:
