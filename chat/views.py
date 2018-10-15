@@ -42,7 +42,7 @@ class WebSocket(web.View):
 
         self.request.app['websockets'].remove(ws)
         for _ws in self.request.app['websockets']:
-            _ws.send_str('%s disconected' % login)
+            await _ws.send_str('%s disconected' % login)
         log.debug('websocket connection closed')
 
         return ws
