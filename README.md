@@ -32,3 +32,9 @@ To run server you need just type to console
 ```
 ./app.py
 ```
+
+To generate SECRET_KEY
+```
+from cryptography import fernet
+fernet_key = fernet.Fernet.generate_key().decode("utf-8")
+```

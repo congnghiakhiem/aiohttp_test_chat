@@ -13,3 +13,4 @@ init.vim
 .vimrc
 
 *.log
+__pycache__
